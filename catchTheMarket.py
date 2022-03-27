@@ -39,6 +39,8 @@ def runGame():
   pygame.display.flip()
   y_upper_bound = 270
   y_lower_bound = 780
+  pygame.font.init()
+  fnt = pygame.font.SysFont('arial', 30)
   for i in range(len(prices)):
     predictions = []
     x_left_bound = boundaries[i][0]
@@ -71,7 +73,7 @@ def runGame():
                         last_pos = mouse_position
                     else:
                       predictions.append(840 + (.71 * (780 - y)))
-                      pygame.draw.line(win, TEAL, last_pos, mouse_position, 2)
+                      pygame.draw.line(win, TEAL, last_pos, mouse_position, 3)
                       if (x == x_right_bound):
                         run = False
                       last_pos = mouse_position
@@ -87,7 +89,10 @@ def runGame():
         pygame.display.update()
     pygame.time.delay(400)
     win.blit(images[i], (x_left_bound, 250))
-    print(correctness(predictions, prices[i]))
+    percent = (correctness(predictions, prices[i]))
+    dspPercent = str(round(percent, 1)) + "%"
+    textsurface = fnt.render(dspPercent, False, (255, 255, 255))
+    win.blit(textsurface, (x_right_bound - 90, 750))
   pygame.display.update()
 
 pygame.display.flip()
