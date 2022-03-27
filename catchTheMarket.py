@@ -16,6 +16,9 @@ win = pygame.display.set_mode((1900, 900))
 win.fill(background_color)
 image = pygame.image.load('catchTheMarketLogo.png')
 
+def get_font(size):
+    return pygame.font.Font("arial", size)
+
 class button():
    def __init__(self, color, x, y, height, width, text=''):
        self.color = color
@@ -41,28 +44,43 @@ class button():
                return True
        return False
 
+Back_Button = button((38, 94, 92), 80, 800, 75, 225, 'Back')
+
 def main_menu():
   pygame.display.set_caption("Catch The Market: Main Menu")
+  win.fill(background_color)
   win.blit(image, (615, 0))
-  Play_Button = button((38, 94, 92), 150, 225, 250, 100, 'Play')
+  Play_Button = button((38, 94, 92), 835, 250, 100, 250, 'Play')
   Play_Button.draw(win, (6, 23, 22))
+  Instruction_Button = button((38, 94, 92), 835, 450, 100, 250, 'Instruction')
+  Instruction_Button.draw(win, (6, 23, 22))
   pygame.display.flip()
-  running = True
-  while running:
+  while True:
       for event in pygame.event.get():
           pos = pygame.mouse.get_pos()
           if event.type == pygame.QUIT:
-            running = False
-          if event.type == pygame.MOUSEBUTTONDOWN:
+            pygame.display.quit()
+            pygame.quit()
+          else:
+            if event.type == pygame.MOUSEBUTTONDOWN:
               if Play_Button.isOver(pos):
                 play()
-          if event.type == pygame.MOUSEMOTION:
-              if Play_Button.isOver(pos):
-                  Play_Button.color=(255,0,0)
-                  pygame.display.flip()
+              elif Instruction_Button.isOver(pos):
+                instruction()
+            if event.type == pygame.MOUSEMOTION:
+              if Instruction_Button.isOver(pos):
+                Instruction_Button.color = (255, 0, 0)
+                pygame.display.flip()
               else:
-                  Play_Button.color = (0, 255, 0)
-                  pygame.display.flip()
+                Instruction_Button.color = (38, 94, 92)
+              if Play_Button.isOver(pos):
+                Play_Button.color=(29, 125, 122)
+                Play_Button.draw(win, (6, 23, 22))
+                pygame.display.flip()
+              else:
+                Play_Button.color = (38, 94, 92)
+                Play_Button.draw(win, (6, 23, 22))
+                pygame.display.flip()
 
 def correctness(predictions, prices):
   tot = 0
@@ -88,6 +106,7 @@ def runGame():
   y_lower_bound = 780
   pygame.font.init()
   fnt = pygame.font.SysFont('arial', 30)
+  totAvg = 0
   for i in range(len(prices)):
     predictions = []
     x_left_bound = boundaries[i][0]
@@ -104,26 +123,34 @@ def runGame():
                 pygame.quit()
                 win.exit()
             elif event.type == pygame.MOUSEMOTION:
-                if (drawing):
-                    x, y = pygame.mouse.get_pos()
-                    if (x < x_left_bound):
-                      x = x_left_bound
-                    if (x > x_right_bound):
-                      x = x_right_bound
-                    if (y < y_upper_bound):
-                      y = y_upper_bound
-                    if (y > y_lower_bound):
-                      y = y_lower_bound
-                    mouse_position = (x, y)
-                    if last_pos is None:
-                      if x < (x_left_bound + 5):
+                if Back_Button.isOver(pygame.mouse.get_pos()):
+                   Back_Button.color = (29, 125, 122)
+                   Back_Button.draw(win, (6, 23, 22))
+                   pygame.display.flip()
+                else:
+                   Back_Button.color = (38, 94, 92)
+                   Back_Button.draw(win, (6, 23, 22))
+                   pygame.display.flip()
+                   if (drawing):
+                      x, y = pygame.mouse.get_pos()
+                      if (x < x_left_bound):
+                        x = x_left_bound
+                      if (x > x_right_bound):
+                        x = x_right_bound
+                      if (y < y_upper_bound):
+                        y = y_upper_bound
+                      if (y > y_lower_bound):
+                        y = y_lower_bound
+                      mouse_position = (x, y)
+                      if last_pos is None:
+                        if x < (x_left_bound + 5):
+                          last_pos = mouse_position
+                      else:
+                        predictions.append(840 + (.71 * (780 - y)))
+                        pygame.draw.line(win, TEAL, last_pos, mouse_position, 3)
+                        if (x == x_right_bound):
+                          run = False
                         last_pos = mouse_position
-                    else:
-                      predictions.append(840 + (.71 * (780 - y)))
-                      pygame.draw.line(win, TEAL, last_pos, mouse_position, 3)
-                      if (x == x_right_bound):
-                        run = False
-                      last_pos = mouse_position
             elif event.type == pygame.MOUSEBUTTONUP:
                 last_pos = None
                 predictions = []
@@ -132,40 +159,123 @@ def runGame():
                 mouse_position = (0, 0)
                 drawing = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                drawing = True
+                if Back_Button.isOver(pygame.mouse.get_pos()):
+                   main_menu()
+                else:
+                  drawing = True    
         pygame.display.update()
     pygame.time.delay(400)
     win.blit(images[i], (x_left_bound, 250))
     percent = (correctness(predictions, prices[i]))
+    totAvg += percent
     dspPercent = str(round(percent, 1)) + "%"
     textsurface = fnt.render(dspPercent, False, (255, 255, 255))
     win.blit(textsurface, (x_right_bound - 90, 750))
+  Analytics_Button = button((38, 94, 92), 1575, 800, 75, 225, 'Analytics')
+  Analytics_Button.draw(win, (6, 23, 22))
   pygame.display.update()
+  while True:
+   for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+          pygame.quit()
+          win.exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if Analytics_Button.isOver(pygame.mouse.get_pos()):
+              analytics(totAvg / 4)
+            elif Back_Button.isOver(pygame.mouse.get_pos()):
+              main_menu()
+        if event.type == pygame.MOUSEMOTION:
+            if Analytics_Button.isOver(pygame.mouse.get_pos()):
+                Analytics_Button.color = (255, 0, 0)
+                pygame.display.flip()
+            else:
+                Analytics_Button.color = (0, 255, 0)
+                pygame.display.flip()
 
 def play():
    pygame.display.set_caption("Play")
-   running = True
    Play_Mouse_Pos = pygame.mouse.get_pos()
    win.fill(background_color)
-   Back_Button = button((0, 255, 0), 0, 0, 250, 100, 'Back')
-   Back_Button.draw(win, (0, 0, 0))
+   Back_Button.draw(win, (6, 23, 22))
    pygame.display.flip()
    runGame()
-   while running:
+   while True:
        for event in pygame.event.get():
            if event.type == pygame.QUIT:
-              running = False
+            pygame.display.quit()
+            pygame.quit()
            if event.type == pygame.MOUSEBUTTONDOWN:
                if Back_Button.isOver(Play_Mouse_Pos):
                    main_menu()
            if event.type == pygame.MOUSEMOTION:
                if Back_Button.isOver(Play_Mouse_Pos):
-                   Back_Button.color = (255, 0, 0)
+                   Back_Button.color = (29, 125, 122)
+                   Back_Button.draw(win, (6, 23, 22))
                    pygame.display.flip()
                else:
-                   Back_Button.color = (0, 255, 0)
+                   Back_Button.color = (38, 94, 92)
+                   Back_Button.draw(win, (6, 23, 22))
                    pygame.display.flip()
 
+def instruction():
+    pygame.display.set_caption("Instructions")
+    win.fill(background_color)
+    Back_Button.draw(win, (6, 23, 22))
+    font = pygame.font.SysFont('arial', 20)
+    Instruction_Text = font.render("The concept of the game is such and such", False, (255, 255, 255))
+    win.blit(Instruction_Text, (400, 250))
+    pygame.display.flip()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+              pygame.display.quit()
+              pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+              if Back_Button.isOver(pygame.mouse.get_pos()):
+                main_menu()
+            if event.type == pygame.MOUSEMOTION:
+              if Back_Button.isOver(pygame.mouse.get_pos()):
+                  Back_Button.color = (29, 125, 122)
+                  Back_Button.draw(win, (6, 23, 22))
+                  pygame.display.flip()
+              else:
+                  Back_Button.color = (38, 94, 92)
+                  Back_Button.draw(win, (6, 23, 22))
+                  pygame.display.flip()
+
+def analytics(average):
+    pygame.display.set_caption("Analytics")
+    running = True
+    Analytics_Mouse_Pos = pygame.mouse.get_pos()
+    win.fill(background_color)
+    Back_Button.draw(win, (6, 23, 22))
+    font = pygame.font.SysFont('arial', 20)
+    if 0 <= average <= 50:
+        Analytics_Text = font.render("This is where you fucked up1", False, (255, 255, 255))
+    elif 50 < average <= 80:
+        Analytics_Text = font.render("This is where you fucked up2", False, (255, 255, 255))
+    else:
+        Analytics_Text = font.render("This is where you fucked up3", False, (255, 255, 255))
+    win.blit(Analytics_Text, (400, 250))
+    pygame.display.flip()
+    #houses the back button so if you made any original changes to the back button in instructions go ahead and copy and paste here
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+              pygame.display.quit()
+              pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+              if Back_Button.isOver(pygame.mouse.get_pos()):
+                main_menu()
+            if event.type == pygame.MOUSEMOTION:
+              if Back_Button.isOver(pygame.mouse.get_pos()):
+                  Back_Button.color = (29, 125, 122)
+                  Back_Button.draw(win, (6, 23, 22))
+                  pygame.display.flip()
+              else:
+                  Back_Button.color = (38, 94, 92)
+                  Back_Button.draw(win, (6, 23, 22))
+                  pygame.display.flip()
 
 pygame.display.flip()
 running = True
