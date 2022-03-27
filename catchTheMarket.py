@@ -13,10 +13,56 @@ images = [pygame.image.load('TSLA2.png'), pygame.image.load('TSLA3.png'),
 
 background_color = (19, 57, 68)
 win = pygame.display.set_mode((1900, 900))
-pygame.display.set_caption('Chase The Market')
 win.fill(background_color)
 image = pygame.image.load('catchTheMarketLogo.png')
-win.blit(image, (615, 0))
+
+class button():
+   def __init__(self, color, x, y, height, width, text=''):
+       self.color = color
+       self.x = x
+       self.y = y
+       self.width = width
+       self.height = height
+       self.text = text
+
+   def draw(self, win, outline=None):
+       if outline:
+           pygame.draw.rect(win, outline, (self.x - 2, self.y - 2, self.width + 4, self.height + 4), 0)
+       pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height), 0)
+
+       if self.text != '':
+           font = pygame.font.SysFont('arial', 20)
+           text = font.render(self.text, 1, (255, 255, 255))
+           win.blit(text, (self.x + (self.width / 2 - text.get_width() / 2), self.y + (self.height / 2 - text.get_height() / 2)))
+
+   def isOver(self, pos):
+       if pos[0] > self.x and pos[0] < self.x + self.width:
+           if pos[1] > self.y and pos[1] < self.y + self.height:
+               return True
+       return False
+
+def main_menu():
+  pygame.display.set_caption("Catch The Market: Main Menu")
+  win.blit(image, (615, 0))
+  Play_Button = button((38, 94, 92), 150, 225, 250, 100, 'Play')
+  Play_Button.draw(win, (6, 23, 22))
+  pygame.display.flip()
+  running = True
+  while running:
+      for event in pygame.event.get():
+          pos = pygame.mouse.get_pos()
+          if event.type == pygame.QUIT:
+            running = False
+          if event.type == pygame.MOUSEBUTTONDOWN:
+              if Play_Button.isOver(pos):
+                play()
+          if event.type == pygame.MOUSEMOTION:
+              if Play_Button.isOver(pos):
+                  Play_Button.color=(255,0,0)
+                  pygame.display.flip()
+              else:
+                  Play_Button.color = (0, 255, 0)
+                  pygame.display.flip()
 
 def correctness(predictions, prices):
   tot = 0
@@ -31,6 +77,7 @@ def runGame():
   # update visual with indicators for new section drawing
   # show correct stock line and compute percentage
   # repeat for each stock section
+  win.blit(image, (615, 0))
   tsla1 = pygame.image.load('TSLA1.png')
   win.blit(tsla1, (50, 250))
   WHITE = (255, 255, 255)
@@ -95,9 +142,34 @@ def runGame():
     win.blit(textsurface, (x_right_bound - 90, 750))
   pygame.display.update()
 
+def play():
+   pygame.display.set_caption("Play")
+   running = True
+   Play_Mouse_Pos = pygame.mouse.get_pos()
+   win.fill(background_color)
+   Back_Button = button((0, 255, 0), 0, 0, 250, 100, 'Back')
+   Back_Button.draw(win, (0, 0, 0))
+   pygame.display.flip()
+   runGame()
+   while running:
+       for event in pygame.event.get():
+           if event.type == pygame.QUIT:
+              running = False
+           if event.type == pygame.MOUSEBUTTONDOWN:
+               if Back_Button.isOver(Play_Mouse_Pos):
+                   main_menu()
+           if event.type == pygame.MOUSEMOTION:
+               if Back_Button.isOver(Play_Mouse_Pos):
+                   Back_Button.color = (255, 0, 0)
+                   pygame.display.flip()
+               else:
+                   Back_Button.color = (0, 255, 0)
+                   pygame.display.flip()
+
+
 pygame.display.flip()
 running = True
-runGame()
+main_menu()
 while running:
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
